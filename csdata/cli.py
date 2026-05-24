@@ -21,6 +21,7 @@ def main(argv=None) -> int:
     prepare_parser.add_argument("--out", required=True)
     prepare_parser.add_argument("--schema", choices=["name", "idx"], default="name")
     prepare_parser.add_argument("--naming", choices=["real", "anonymized"], default=None)
+    prepare_parser.add_argument("--cache-dir", default=None)
 
     validate_parser = subparsers.add_parser("validate")
     validate_parser.add_argument("dataset")
@@ -34,7 +35,13 @@ def main(argv=None) -> int:
             return 0
 
         if args.cmd == "prepare":
-            out = prepare(args.dataset, args.out, schema=args.schema, naming=args.naming)
+            out = prepare(
+                args.dataset,
+                args.out,
+                schema=args.schema,
+                naming=args.naming,
+                cache_dir=args.cache_dir,
+            )
             print(f"wrote {out}")
             return 0
 

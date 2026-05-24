@@ -6,7 +6,8 @@ from pathlib import Path
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from csdata.download import fetch
+from csdata.download import fetch, fetch_health_heritage
+from csdata.health_heritage import build_health_heritage_frame
 from csdata.registry import load_spec
 from csdata.render import _alias_map, render_idx, render_name
 from csdata.transforms import apply_transform
@@ -43,6 +44,9 @@ def prepare(
 
     if raw_df is not None:
         df = raw_df.copy()
+    elif name == "health_heritage":
+        raw_paths = fetch_health_heritage(spec.source["url"], name=name, cache_dir=cache_dir)
+        df = build_health_heritage_frame(raw_paths)
     else:
         raw_path = fetch(spec.source["url"], name, cache_dir)
         df = pd.read_csv(raw_path)
