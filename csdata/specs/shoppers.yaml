@@ -7,9 +7,10 @@ column_names: [Administrative, Administrative_Duration, Informational,
   TrafficType, VisitorType, Weekend, Revenue]
 numerical: [Administrative, Administrative_Duration, Informational,
   Informational_Duration, ProductRelated, ProductRelated_Duration, BounceRates,
-  ExitRates, PageValues, SpecialDay]
-categorical: [Month, OperatingSystems, Browser, Region, TrafficType, VisitorType, Weekend]
+  ExitRates, PageValues]
+categorical: [Month, OperatingSystems, Browser, Region, TrafficType, VisitorType,
+  Weekend, SpecialDay]
 dropped: []
 default_naming: real
 source: {url: "https://archive.ics.uci.edu/static/public/468/online+shoppers+purchasing+intention+dataset.zip", transform: shoppers}
-notes: "Correction vs heuristic: SpecialDay is numerical (0,0.2,..); OperatingSystems/Browser/Region/TrafficType are integer-coded categoricals."
+notes: "OperatingSystems/Browser/Region/TrafficType are integer-coded categoricals. SpecialDay is a 6-level proximity score (0,0.2,..,1.0): UCI documents it as numerical, but it is modeled CATEGORICAL here so generators (e.g. guided) emit only the valid discrete levels via the clip+round+bit-decode path; a continuous numerical column would emit invalid in-between/out-of-range values."

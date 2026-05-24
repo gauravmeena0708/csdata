@@ -1,10 +1,12 @@
 from csdata.registry import load_spec
 
 
-def test_shoppers_specialday_is_numerical():
+def test_shoppers_specialday_is_categorical():
+    # SpecialDay is a 6-level proximity score. Modeled categorical (not numerical)
+    # so generators emit only the valid discrete levels; see shoppers.yaml notes.
     s = load_spec("shoppers")
-    assert "SpecialDay" in s.numerical
-    assert "SpecialDay" not in s.categorical
+    assert "SpecialDay" in s.categorical
+    assert "SpecialDay" not in s.numerical
 
 
 def test_shoppers_browser_traffictype_are_categorical():
