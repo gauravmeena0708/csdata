@@ -1,0 +1,15 @@
+name: german
+task_type: binclass
+target: class
+column_names: [status, duration, credit_history, purpose, credit_amount, savings,
+  employment, installment_rate, personal_status, debtors, residence_since, property,
+  age, installment_plans, housing, existing_credits, job, maintenance_people,
+  telephone, foreign_worker, class]
+numerical: [duration, credit_amount, installment_rate, residence_since, age,
+  existing_credits, maintenance_people]
+categorical: [status, credit_history, purpose, savings, employment, personal_status,
+  debtors, property, installment_plans, housing, job, telephone, foreign_worker]
+dropped: []
+default_naming: real
+source: {url: "https://archive.ics.uci.edu/static/public/144/statlog+german+credit+data.zip", transform: german}
+notes: "Correction vs heuristic: installment_rate/residence_since/existing_credits/maintenance_people are numerical (integer counts/rates) per all three sources."

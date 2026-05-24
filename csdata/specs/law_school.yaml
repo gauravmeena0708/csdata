@@ -1,0 +1,11 @@
+name: law_school
+task_type: binclass
+target: bar
+column_names: [age, decile1, decile3, fam_inc, lsat, ugpa, gender, race1, cluster,
+  fulltime, ugpagt3, bar]
+numerical: [age, decile1, decile3, fam_inc, lsat, ugpa]
+categorical: [gender, race1, cluster, fulltime, ugpagt3]
+dropped: []
+default_naming: real
+source: {url: "", transform: law_school}
+notes: "No .txt oracle coverage; reconciled from CSV + existing info.json. fam_inc is an income bracket kept numerical pending review. cluster/fulltime canonicalized to int-strings; boolean-ish cols mapped to TRUE/FALSE."

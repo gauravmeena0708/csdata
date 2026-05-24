@@ -1,0 +1,15 @@
+name: health_heritage
+task_type: multiclass
+target: max_CharlsonIndex
+column_names: [LabCount_total, LabCount_months, DrugCount_total, DrugCount_months,
+  no_Claims, no_Providers, no_Vendors, no_PCPs, PayDelay_total, PayDelay_max,
+  PayDelay_min, PrimaryConditionGroup, Specialty, ProcedureGroup, PlaceSvc,
+  AgeAtFirstClaim, Sex, max_CharlsonIndex]
+numerical: [LabCount_total, LabCount_months, DrugCount_total, DrugCount_months,
+  no_Claims, no_Providers, no_Vendors, no_PCPs, PayDelay_total, PayDelay_max, PayDelay_min]
+categorical: [PrimaryConditionGroup, Specialty, ProcedureGroup, PlaceSvc,
+  AgeAtFirstClaim, Sex]
+dropped: []
+default_naming: real
+source: {url: "https://files.sri.inf.ethz.ch/tableak/Health_Heritage", transform: health_heritage}
+notes: "No .txt oracle coverage; reconciled from CSV + existing info.json. Correction vs heuristic: no_PCPs is a numerical count. max_CharlsonIndex target treated as multiclass."

@@ -1,0 +1,12 @@
+name: compas
+task_type: binclass
+target: two_year_recid
+column_names: [age, sex, race, diff_custody, diff_jail, priors_count, c_charge_degree,
+  v_score_text, two_year_recid]
+numerical: [age, diff_custody, diff_jail, priors_count]
+categorical: [sex, race, c_charge_degree, v_score_text]
+dropped: [id, name, first, last, c_case_number, c_jail_in, c_jail_out, in_custody,
+  out_custody, dob]
+default_naming: real
+source: {url: "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv", transform: compas}
+notes: "Standard ProPublica filtering applied. diff_custody/diff_jail derived (seconds) from jail/custody timestamps which are then dropped. Names/ids/dates dropped."

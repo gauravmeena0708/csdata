@@ -1,0 +1,15 @@
+name: telco_churn
+task_type: binclass
+target: Churn
+column_names: [gender, SeniorCitizen, Partner, Dependents, tenure, PhoneService,
+  MultipleLines, InternetService, OnlineSecurity, OnlineBackup, DeviceProtection,
+  TechSupport, StreamingTV, StreamingMovies, Contract, PaperlessBilling,
+  PaymentMethod, MonthlyCharges, TotalCharges, Churn]
+numerical: [tenure, MonthlyCharges, TotalCharges]
+categorical: [gender, SeniorCitizen, Partner, Dependents, PhoneService, MultipleLines,
+  InternetService, OnlineSecurity, OnlineBackup, DeviceProtection, TechSupport,
+  StreamingTV, StreamingMovies, Contract, PaperlessBilling, PaymentMethod]
+dropped: [customerID]
+default_naming: real
+source: {url: "https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv", transform: telco_churn}
+notes: "customerID dropped. SeniorCitizen cast to string (binary categorical). TotalCharges numeric-coerced (blanks -> NaN -> imputed)."

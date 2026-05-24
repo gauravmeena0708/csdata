@@ -1,0 +1,11 @@
+name: bank_marketing
+task_type: binclass
+target: y
+column_names: [age, job, marital, education, default, balance, housing, loan, contact,
+  day, month, duration, campaign, pdays, previous, poutcome, y]
+numerical: [age, balance, day, duration, campaign, pdays, previous]
+categorical: [job, marital, education, default, housing, loan, contact, month, poutcome]
+dropped: []
+default_naming: real
+source: {url: "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip", transform: bank_marketing}
+notes: "bank-full variant (balance, day present; emp.var.rate etc. absent). Do not mix with bank-additional naming."
