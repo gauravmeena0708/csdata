@@ -20,6 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]
+audit = ["ucimlrepo>=0.0.7"]
 
 [project.scripts]
 csdata = "csdata.cli:main"

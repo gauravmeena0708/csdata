@@ -28,6 +28,10 @@ def main(argv=None) -> int:
     validate_parser.add_argument("--dir", required=True)
     validate_parser.add_argument("--schema", choices=["name", "idx"], default="name")
 
+    audit_parser = subparsers.add_parser("audit")
+    audit_parser.add_argument("dataset", nargs="?", help="dataset name, or omit with --all")
+    audit_parser.add_argument("--all", action="store_true", help="audit every UCI-mappable dataset")
+
     args = parser.parse_args(argv)
     try:
         if args.cmd == "list":
@@ -57,6 +61,30 @@ def main(argv=None) -> int:
             for msg in msgs:
                 print(msg)
             return 1 if msgs else 0
+
+        if args.cmd == "audit":
+            from csdata.audit import audit_types, auditable
+
+            if not args.all and not args.dataset:
+                print("error: provide a dataset name or --all", file=sys.stderr)
+                return 2
+            targets = auditable() if args.all else [args.dataset]
+            try:
+                for name in targets:
+                    findings = audit_types(name)
+                    if findings:
+                        print(f"# {name}")
+                        for msg in findings:
+                            print(f"  - {msg}")
+                    else:
+                        print(f"# {name}: consistent with UCI")
+            except ImportError:
+                print("error: audit requires ucimlrepo (pip install 'csdata[audit]')", file=sys.stderr)
+                return 2
+            except ConnectionError:
+                print("error: could not reach the UCI server (network required for audit)", file=sys.stderr)
+                return 2
+            return 0  # advisory only
     except (KeyError, FileNotFoundError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
