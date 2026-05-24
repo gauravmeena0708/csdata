@@ -116,20 +116,23 @@ def _column_info(
 
     column_info = {}
     for col in num:
-        series = df[real_by_rendered.get(col, col)]
+        source_col = _source_column(df, col, real_by_rendered)
+        series = df[source_col]
         column_info[col] = {
             "type": "numerical",
             "max": float(series.max()),
             "min": float(series.min()),
         }
     for col in cat:
-        series = df[real_by_rendered.get(col, col)]
+        source_col = _source_column(df, col, real_by_rendered)
+        series = df[source_col]
         column_info[col] = {
             "type": "categorical",
             "categories": sorted(set(series.astype(str))),
         }
 
-    target_series = df[real_by_rendered.get(target, target)]
+    target_source_col = _source_column(df, target, real_by_rendered)
+    target_series = df[target_source_col]
     if spec.task_type == "regression":
         column_info[target] = {
             "type": "numerical",
@@ -142,3 +145,9 @@ def _column_info(
             "categories": sorted(set(target_series.astype(str))),
         }
     return column_info
+
+
+def _source_column(df: pd.DataFrame, rendered_col: str, real_by_rendered: dict[str, str]) -> str:
+    if rendered_col in df.columns:
+        return rendered_col
+    return real_by_rendered.get(rendered_col, rendered_col)
