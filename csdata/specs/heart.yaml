@@ -1,0 +1,16 @@
+name: heart
+task_type: binclass
+target: target
+column_names: [age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak,
+  slope, ca, thal, target]
+numerical: [age, trestbps, chol, thalach, oldpeak]
+categorical: [sex, cp, fbs, restecg, exang, slope, ca, thal]
+dropped: []
+default_naming: real
+source:
+  url: "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+  transform: heart
+  read_csv: {header: null, na_values: "?"}
+notes: "UCI Cleveland heart disease (headerless, '?' = NA). Target binarized presence(1-4)
+  vs absence(0) per UCI docs and standard convention -> binclass. ca/thal are integer-coded
+  categoricals containing '?' (mode-imputed)."

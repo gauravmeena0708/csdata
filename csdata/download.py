@@ -15,33 +15,61 @@ HEALTH_HERITAGE_BASE_URLS = (
 )
 
 
-def fetch(url: str, name: str, cache_dir: Path | str | None = None) -> str:
+def fetch(
+    url: str,
+    name: str,
+    cache_dir: Path | str | None = None,
+    archive_member: str | None = None,
+) -> str:
     dataset_cache = Path(cache_dir or DEFAULT_CACHE) / name
     dataset_cache.mkdir(parents=True, exist_ok=True)
 
-    marker = dataset_cache / "raw.csv"
-    if marker.exists():
-        return str(marker)
+    if archive_member:
+        marker = dataset_cache / f"raw{Path(archive_member).suffix or '.data'}"
+        if marker.exists():
+            return str(marker)
+    else:
+        cached = sorted(dataset_cache.glob("raw.*"))
+        if cached:
+            return str(cached[0])
 
     filename = Path(urlparse(url).path).name or "raw"
     raw = dataset_cache / filename
     tmp = raw.with_name(raw.name + ".part")
 
-    with urlopen(url) as response, tmp.open("wb") as handle:
-        handle.write(response.read())
+    if not raw.exists():
+        with urlopen(url) as response, tmp.open("wb") as handle:
+            handle.write(response.read())
+        tmp.replace(raw)
 
     if raw.suffix == ".zip":
-        tmp.replace(raw)
         with zipfile.ZipFile(raw) as archive:
-            csv_names = [item for item in archive.namelist() if item.lower().endswith(".csv")]
-            if not csv_names:
-                raise ValueError(f"no csv inside {url}")
-            with archive.open(csv_names[0]) as src, marker.open("wb") as dst:
+            member = _select_zip_member(archive, archive_member, url)
+            marker = dataset_cache / f"raw{Path(member).suffix or '.data'}"
+            with archive.open(member) as src, marker.open("wb") as dst:
                 dst.write(src.read())
     else:
-        tmp.replace(marker)
+        marker = dataset_cache / f"raw{raw.suffix or '.data'}"
+        if raw != marker:
+            raw.replace(marker)
 
     return str(marker)
+
+
+def _select_zip_member(archive: zipfile.ZipFile, archive_member: str | None, url: str) -> str:
+    names = archive.namelist()
+    if archive_member:
+        if archive_member in names:
+            return archive_member
+        raise ValueError(f"{archive_member!r} not found inside {url}")
+
+    data_names = [
+        item for item in names
+        if Path(item).suffix.lower() in {".csv", ".data", ".xls", ".xlsx"}
+    ]
+    if not data_names:
+        raise ValueError(f"no tabular data file inside {url}")
+    return data_names[0]
 
 
 def fetch_health_heritage(

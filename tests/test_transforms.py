@@ -44,8 +44,33 @@ def test_has_transform_for_every_spec():
         "compas",
         "law_school",
         "health_heritage",
+        "wine_quality_red",
+        "heart",
     ):
         assert has_transform(name), name
+
+
+def test_heart_binarizes_target_by_position():
+    raw = pd.DataFrame({i: [1, 2] for i in range(13)})
+    raw[13] = [0, 3]
+    out = apply_transform("heart", raw)
+    assert list(out.columns) == [
+        "age",
+        "sex",
+        "cp",
+        "trestbps",
+        "chol",
+        "fbs",
+        "restecg",
+        "thalach",
+        "exang",
+        "oldpeak",
+        "slope",
+        "ca",
+        "thal",
+        "target",
+    ]
+    assert list(out["target"]) == [0, 1]
 
 
 def test_unknown_transform_raises_keyerror():

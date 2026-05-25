@@ -11,5 +11,9 @@ categorical: [status, credit_history, purpose, savings, employment, personal_sta
   debtors, property, installment_plans, housing, job, telephone, foreign_worker]
 dropped: []
 default_naming: real
-source: {url: "https://archive.ics.uci.edu/static/public/144/statlog+german+credit+data.zip", transform: german}
+source:
+  url: "https://archive.ics.uci.edu/static/public/144/statlog+german+credit+data.zip"
+  transform: german
+  archive_member: german.data
+  read_csv: {sep: "\\s+", header: null}
 notes: "Correction vs heuristic: installment_rate/residence_since/existing_credits/maintenance_people are numerical (integer counts/rates) per all three sources."

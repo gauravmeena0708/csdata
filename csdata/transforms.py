@@ -46,6 +46,22 @@ HEADERS = {
         "foreign_worker",
         "class",
     ],
+    "heart": [
+        "age",
+        "sex",
+        "cp",
+        "trestbps",
+        "chol",
+        "fbs",
+        "restecg",
+        "thalach",
+        "exang",
+        "oldpeak",
+        "slope",
+        "ca",
+        "thal",
+        "target",
+    ],
 }
 
 
@@ -196,6 +212,18 @@ def _bank_marketing(df: pd.DataFrame) -> pd.DataFrame:
 @register("shoppers")
 def _shoppers(df: pd.DataFrame) -> pd.DataFrame:
     return _move_target_last(df, "Revenue")
+
+
+@register("wine_quality_red")
+def _wine_quality_red(df: pd.DataFrame) -> pd.DataFrame:
+    return _move_target_last(df, "quality")
+
+
+@register("heart")
+def _heart(df: pd.DataFrame) -> pd.DataFrame:
+    target_col = df.columns[-1]
+    df[target_col] = (pd.to_numeric(df[target_col], errors="coerce") > 0).astype(int)
+    return df
 
 
 @register("health_heritage")

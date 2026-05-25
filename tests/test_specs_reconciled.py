@@ -26,6 +26,32 @@ def test_health_heritage_no_pcps_is_numerical():
     assert "no_PCPs" in s.numerical
 
 
+def test_wine_quality_red_all_features_numerical():
+    s = load_spec("wine_quality_red")
+    assert s.task_type == "multiclass"
+    assert s.target == "quality"
+    assert s.categorical == []
+    assert len(s.numerical) == 11
+    assert "quality" not in s.numerical
+
+
+def test_heart_spec_partition_and_binclass():
+    s = load_spec("heart")
+    assert s.task_type == "binclass"
+    assert s.target == "target"
+    assert set(s.numerical) == {"age", "trestbps", "chol", "thalach", "oldpeak"}
+    assert set(s.categorical) == {
+        "sex",
+        "cp",
+        "fbs",
+        "restecg",
+        "exang",
+        "slope",
+        "ca",
+        "thal",
+    }
+
+
 def test_dropped_columns_never_appear_in_features():
     for name in ("telco_churn", "compas", "default", "beijing"):
         s = load_spec(name)

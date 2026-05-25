@@ -1,0 +1,16 @@
+name: wine_quality_red
+task_type: multiclass
+target: quality
+column_names: [fixed acidity, volatile acidity, citric acid, residual sugar, chlorides,
+  free sulfur dioxide, total sulfur dioxide, density, pH, sulphates, alcohol, quality]
+numerical: [fixed acidity, volatile acidity, citric acid, residual sugar, chlorides,
+  free sulfur dioxide, total sulfur dioxide, density, pH, sulphates, alcohol]
+categorical: []
+dropped: []
+default_naming: real
+source:
+  url: "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
+  transform: wine_quality_red
+  read_csv: {sep: ";"}
+notes: "UCI red wine quality; semicolon-separated. 11 physico-chemical features numerical;
+  integer quality (3-8) kept as a multiclass target so decoders snap to valid levels."

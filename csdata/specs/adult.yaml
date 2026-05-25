@@ -9,5 +9,9 @@ categorical: [workclass, education, marital-status, occupation, relationship, ra
   sex, native-country]
 dropped: []
 default_naming: real
-source: {url: "https://archive.ics.uci.edu/static/public/2/adult.zip", transform: adult}
+source:
+  url: "https://archive.ics.uci.edu/static/public/2/adult.zip"
+  transform: adult
+  archive_member: adult.data
+  read_csv: {header: null, skipinitialspace: true}
 notes: "fnlwgt is a survey weight (kept numerical). education-num is ordinal, kept numerical. jules/gemini/chatgpt agree; no IDs in UCI adult."

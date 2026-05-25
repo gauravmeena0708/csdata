@@ -48,8 +48,12 @@ def prepare(
         raw_paths = fetch_health_heritage(spec.source["url"], name=name, cache_dir=cache_dir)
         df = build_health_heritage_frame(raw_paths)
     else:
-        raw_path = fetch(spec.source["url"], name, cache_dir)
-        df = pd.read_csv(raw_path)
+        raw_path = fetch(spec.source["url"], name, cache_dir, spec.source.get("archive_member"))
+        read_excel_opts = spec.source.get("read_excel")
+        if read_excel_opts is not None or Path(raw_path).suffix.lower() in {".xls", ".xlsx"}:
+            df = pd.read_excel(raw_path, **dict(read_excel_opts or {}))
+        else:
+            df = pd.read_csv(raw_path, **dict(spec.source.get("read_csv", {})))
 
     df = apply_transform(name, df)
     if naming == "anonymized":
