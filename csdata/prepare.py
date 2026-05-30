@@ -12,6 +12,7 @@ from csdata.registry import load_spec
 from csdata.render import _alias_map, render_idx, render_name
 from csdata.transforms import apply_transform
 from csdata.validate import validate
+from csdata.spec import DatasetSpec
 
 
 def _impute(df: pd.DataFrame, num_cols: list[str], cat_cols: list[str]) -> pd.DataFrame:
@@ -36,8 +37,10 @@ def prepare(
     naming: str | None = None,
     raw_df: pd.DataFrame | None = None,
     cache_dir: str | Path | None = None,
+    spec: DatasetSpec | None = None,
 ) -> str:
-    spec = load_spec(name)
+    custom_spec = spec is not None
+    spec = spec or load_spec(name)
     naming = naming or spec.default_naming
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
@@ -55,7 +58,18 @@ def prepare(
         else:
             df = pd.read_csv(raw_path, **dict(spec.source.get("read_csv", {})))
 
-    df = apply_transform(name, df)
+    if custom_spec:
+        # Bring-your-own spec: the frame is already in final form, so skip the
+        # registry's per-dataset transform and keep only the spec's columns.
+        missing = [c for c in spec.column_names if c not in df.columns]
+        if missing:
+            raise ValueError(f"raw data missing spec columns: {missing}")
+        dropped = [c for c in spec.dropped if c in df.columns]
+        if dropped:
+            print(f"[csdata] dropped columns (unmodellable dtype or id-like): {dropped}")
+        df = df[spec.column_names]
+    else:
+        df = apply_transform(name, df)
     if naming == "anonymized":
         df = df.rename(columns=_alias_map(spec))
     elif naming != "real":

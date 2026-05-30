@@ -23,6 +23,24 @@ def main(argv=None) -> int:
     prepare_parser.add_argument("--naming", choices=["real", "anonymized"], default=None)
     prepare_parser.add_argument("--cache-dir", default=None)
 
+    csv_parser = subparsers.add_parser("prepare-csv")
+    csv_parser.add_argument("csv", help="path to a custom CSV file")
+    csv_parser.add_argument("--target", required=True, help="target column name")
+    csv_parser.add_argument("--out", required=True)
+    csv_parser.add_argument("--schema", choices=["name", "idx"], default="name")
+    csv_parser.add_argument("--name", default="custom", help="dataset name for artifacts")
+    csv_parser.add_argument(
+        "--task-type",
+        choices=["binclass", "multiclass", "regression"],
+        default=None,
+        help="task type (inferred from the target when omitted)",
+    )
+    csv_parser.add_argument(
+        "--drop-ids",
+        action="store_true",
+        help="drop columns that look like row identifiers instead of modelling them",
+    )
+
     validate_parser = subparsers.add_parser("validate")
     validate_parser.add_argument("dataset")
     validate_parser.add_argument("--dir", required=True)
@@ -45,6 +63,29 @@ def main(argv=None) -> int:
                 schema=args.schema,
                 naming=args.naming,
                 cache_dir=args.cache_dir,
+            )
+            print(f"wrote {out}")
+            return 0
+
+        if args.cmd == "prepare-csv":
+            import pandas as pd
+
+            from csdata.infer import infer_spec
+
+            df = pd.read_csv(args.csv)
+            spec = infer_spec(
+                df,
+                target=args.target,
+                name=args.name,
+                task_type=args.task_type,
+                drop_ids=args.drop_ids,
+            )
+            out = prepare(
+                args.name,
+                args.out,
+                schema=args.schema,
+                raw_df=df,
+                spec=spec,
             )
             print(f"wrote {out}")
             return 0

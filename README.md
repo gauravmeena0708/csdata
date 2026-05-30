@@ -45,8 +45,42 @@ CLI:
 ```bash
 csdata list                                                  # the 10 datasets
 csdata prepare adult --out out/adult --schema name --naming real
+csdata prepare-csv mydata.csv --target y --out out/mydata --schema idx   # any custom CSV
 csdata validate adult --dir out/adult --schema name          # drift check vs spec + CSV dtypes
 csdata audit adult                                           # cross-check spec vs UCI metadata
+```
+
+## Custom CSVs
+
+For a CSV that has no curated spec, `csdata` can infer one and run the same
+pipeline. The heuristics:
+
+- `task_type` is inferred from the target (`binclass` for 2 classes, `multiclass`
+  for a few discrete labels, `regression` for continuous/high-cardinality
+  numerics). Override with `--task-type`.
+- Low-cardinality integer columns (`< 10` distinct) are treated as categorical.
+- Columns whose dtype can't be modelled (datetime/timedelta) are dropped, and the
+  dropped list is printed.
+- `--drop-ids` also drops columns that look like row identifiers (name ends in
+  `id`/is `uuid`/`key`, or unique-per-row integers/strings). Off by default so a
+  real feature is never silently deleted.
+
+```bash
+csdata prepare-csv mydata.csv --target y --out out/mydata --schema idx
+csdata prepare-csv mydata.csv --target y --out out/mydata --drop-ids --task-type regression
+```
+
+> Note: `read_csv` loads date columns as strings, so a date column arrives as a
+> high-cardinality categorical (not the dropped datetime path). Parse such
+> columns yourself and use the Python API if you want them treated as datetimes.
+
+```python
+import pandas as pd
+import csdata
+
+df = pd.read_csv("mydata.csv")
+spec = csdata.infer_spec(df, target="y")          # heuristic DatasetSpec
+csdata.prepare("custom", out_dir="out/mydata", raw_df=df, spec=spec, schema="idx")
 ```
 
 ## The canonical spec
