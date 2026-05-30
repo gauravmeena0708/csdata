@@ -6,7 +6,7 @@ from csdata.validate import validate
 from csdata.prepare import prepare
 from csdata.infer import infer_spec, parse_date_columns
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
     "DatasetSpec", "load_spec", "list_specs",
     "render_name", "render_idx", "validate", "prepare",
