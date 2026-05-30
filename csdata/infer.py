@@ -1,4 +1,5 @@
 from __future__ import annotations
+import warnings
 import pandas as pd
 import numpy as np
 from csdata.spec import DatasetSpec
@@ -6,6 +7,39 @@ from csdata.spec import DatasetSpec
 # Integer target with at most this many distinct values is treated as a
 # discrete label (multiclass) rather than a regression target.
 _MAX_MULTICLASS = 20
+
+
+def parse_date_columns(
+    df: pd.DataFrame,
+    threshold: float = 0.9,
+    skip: object = (),
+) -> pd.DataFrame:
+    """Return a copy of df with string columns that look like dates parsed to datetime64.
+
+    A string (object) column is converted only if at least `threshold` of its
+    non-null values parse as dates, so genuine text columns are left alone.
+    Columns named in `skip` are never converted. This is opt-in because date
+    auto-detection can misread things like year-only or id-like numeric strings.
+    """
+    skip = set(skip)
+    out = df.copy()
+    for col in out.columns:
+        if col in skip or out[col].dtype != object:
+            continue
+        original = out[col]
+        non_null = original.notna()
+        denom = int(non_null.sum())
+        if denom == 0:
+            continue
+        with warnings.catch_warnings():
+            # We deliberately probe columns that may not be dates; the per-element
+            # "could not infer format" fallback is expected, not actionable.
+            warnings.simplefilter("ignore", UserWarning)
+            parsed = pd.to_datetime(original, errors="coerce")
+        frac = int((parsed.notna() & non_null).sum()) / denom
+        if frac >= threshold:
+            out[col] = parsed
+    return out
 
 
 def _infer_task_type(s: pd.Series) -> str:

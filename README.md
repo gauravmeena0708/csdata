@@ -65,14 +65,21 @@ pipeline. The heuristics:
   `id`/is `uuid`/`key`, or unique-per-row integers/strings). Off by default so a
   real feature is never silently deleted.
 
+- `--parse-dates` auto-detects string columns that are really dates (read as
+  strings by `read_csv`) and converts them to datetimes so they hit the dropped
+  path. It is opt-in because year-only or id-like numeric strings can be misread;
+  tune the confidence with `--date-threshold` (default `0.9`).
+
 ```bash
 csdata prepare-csv mydata.csv --target y --out out/mydata --schema idx
 csdata prepare-csv mydata.csv --target y --out out/mydata --drop-ids --task-type regression
+csdata prepare-csv mydata.csv --target y --out out/mydata --parse-dates --date-threshold 0.95
 ```
 
-> Note: `read_csv` loads date columns as strings, so a date column arrives as a
-> high-cardinality categorical (not the dropped datetime path). Parse such
-> columns yourself and use the Python API if you want them treated as datetimes.
+> Note: without `--parse-dates`, `read_csv` loads date columns as strings, so a
+> date column arrives as a high-cardinality categorical rather than being
+> dropped. From the Python API, `csdata.parse_date_columns(df)` does the same
+> detection before `infer_spec`.
 
 ```python
 import pandas as pd

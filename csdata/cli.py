@@ -40,6 +40,17 @@ def main(argv=None) -> int:
         action="store_true",
         help="drop columns that look like row identifiers instead of modelling them",
     )
+    csv_parser.add_argument(
+        "--parse-dates",
+        action="store_true",
+        help="auto-detect date columns (read as strings) and treat them as datetimes",
+    )
+    csv_parser.add_argument(
+        "--date-threshold",
+        type=float,
+        default=0.9,
+        help="fraction of values that must parse as dates for --parse-dates (default 0.9)",
+    )
 
     validate_parser = subparsers.add_parser("validate")
     validate_parser.add_argument("dataset")
@@ -70,9 +81,11 @@ def main(argv=None) -> int:
         if args.cmd == "prepare-csv":
             import pandas as pd
 
-            from csdata.infer import infer_spec
+            from csdata.infer import infer_spec, parse_date_columns
 
             df = pd.read_csv(args.csv)
+            if args.parse_dates:
+                df = parse_date_columns(df, threshold=args.date_threshold, skip={args.target})
             spec = infer_spec(
                 df,
                 target=args.target,

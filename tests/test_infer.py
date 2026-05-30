@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from csdata.infer import infer_spec
+from csdata.infer import infer_spec, parse_date_columns
 from csdata.prepare import prepare
 
 
@@ -111,3 +111,28 @@ def test_drop_ids_flag_routes_id_columns_to_dropped():
     assert set(spec.dropped) == {"id_int", "ID"}
     assert "id_int" not in spec.column_names and "ID" not in spec.column_names
     assert spec.numerical == ["amount"]
+
+
+# --- date auto-detection for CSV-loaded (string) date columns ---
+
+def test_parse_date_columns_converts_date_strings():
+    df = pd.DataFrame({
+        "when": ["2021-03-14", "2021-05-01", "2020-12-31"],
+        "city": ["a", "b", "c"],
+    })
+    out = parse_date_columns(df)
+    assert pd.api.types.is_datetime64_any_dtype(out["when"])
+    assert out["city"].dtype == object  # non-date strings untouched
+
+
+def test_parse_date_columns_respects_threshold():
+    # Only 1/3 of values parse as dates -> column stays string by default.
+    df = pd.DataFrame({"mixed": ["2021-03-14", "hello", "world"]})
+    out = parse_date_columns(df)
+    assert out["mixed"].dtype == object
+
+
+def test_parse_date_columns_skips_listed_columns():
+    df = pd.DataFrame({"when": ["2021-03-14", "2021-05-01"]})
+    out = parse_date_columns(df, skip={"when"})
+    assert out["when"].dtype == object

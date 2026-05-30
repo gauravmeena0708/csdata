@@ -46,6 +46,23 @@ def test_cli_prepare_csv_infers_task_type_and_drops_ids(tmp_path):
     assert "user_id" not in full.columns              # dropped via --drop-ids
 
 
+def test_cli_prepare_csv_parse_dates_drops_date_column(tmp_path):
+    csv = tmp_path / "raw.csv"
+    pd.DataFrame({
+        "signup": ["2021-03-14", "2021-05-01"] * 20,   # date strings via read_csv
+        "amount": [float(i) for i in range(40)],
+        "y": [0, 1] * 20,
+    }).to_csv(csv, index=False)
+    out = tmp_path / "out"
+
+    rc = main(["prepare-csv", str(csv), "--target", "y", "--out", str(out), "--parse-dates"])
+
+    assert rc == 0
+    full = pd.read_csv(Path(out) / "full.csv")
+    assert "signup" not in full.columns       # detected as date, then dropped
+    assert "amount" in full.columns
+
+
 def test_cli_prepare_csv_bad_target_errors(tmp_path):
     csv = tmp_path / "raw.csv"
     pd.DataFrame({"a": [1, 2], "y": [0, 1]}).to_csv(csv, index=False)
