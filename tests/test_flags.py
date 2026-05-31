@@ -53,3 +53,16 @@ def test_protected_by_name():
 def test_empty_dataframe():
     flags = flag_columns(pd.DataFrame())
     assert flags == ColumnFlags(datetime=[], serial=[], protected=[])
+
+
+def test_serial_sequential_handles_integer_valued_floats():
+    # An integer CSV column with a missing value loads as float64 -> '1.0','2.0',...
+    df = pd.DataFrame({"counter": pd.Series([1.0, 2.0, 3.0, 4.0], dtype="float64")})
+    flags = flag_columns(df, numerical_columns=["counter"])
+    assert "counter" in flags.serial
+
+
+def test_serial_sequential_rejects_fractional_floats():
+    df = pd.DataFrame({"measure": pd.Series([1.5, 2.5, 3.5], dtype="float64")})
+    flags = flag_columns(df, numerical_columns=["measure"])
+    assert "measure" not in flags.serial

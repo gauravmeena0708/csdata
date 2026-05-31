@@ -77,9 +77,21 @@ def _is_protected_col(col: str) -> bool:
 
 
 def _is_sequential_integers(values: List[str]) -> bool:
-    """Return True if values form a contiguous +1 integer sequence."""
+    """Return True if values form a contiguous +1 integer sequence.
+
+    Accepts integer-valued float strings (e.g. '4.0', which pandas produces for an
+    integer CSV column that has a missing value) but rejects genuine fractional
+    values so '1.5','2.5' is never treated as sequential.
+    """
     try:
-        ints = [int(v) for v in values if v]
+        ints: list[int] = []
+        for v in values:
+            if not v:
+                continue
+            f = float(v)
+            if not f.is_integer():
+                return False
+            ints.append(int(f))
         if len(ints) < 2:
             return False
         return all(ints[i + 1] - ints[i] == 1 for i in range(len(ints) - 1))
