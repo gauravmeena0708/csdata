@@ -7,5 +7,9 @@ numerical: [age, balance, day, duration, campaign, pdays, previous]
 categorical: [job, marital, education, default, housing, loan, contact, month, poutcome]
 dropped: []
 default_naming: real
-source: {url: "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip", transform: bank_marketing}
+source:
+  url: "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip"
+  transform: bank_marketing
+  archive_member: bank-full.csv  # nested inside bank.zip; ';'-delimited, quoted headers
+  read_csv: {sep: ";"}
 notes: "bank-full variant (balance, day present; emp.var.rate etc. absent). Do not mix with bank-additional naming."

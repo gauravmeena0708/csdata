@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import os
 import zipfile
 from pathlib import Path
@@ -8,6 +9,7 @@ from urllib.request import urlopen
 
 
 DEFAULT_CACHE = Path(os.environ.get("CSDATA_CACHE", Path.home() / ".cache" / "csdata"))
+TABULAR_SUFFIXES = {".csv", ".data", ".xls", ".xlsx"}
 HEALTH_HERITAGE_FILES = ("Claims.csv", "DrugCount.csv", "LabCount.csv", "Members.csv")
 HEALTH_HERITAGE_BASE_URLS = (
     "https://files.sri.inf.ethz.ch/tableak/Health_Heritage",
@@ -43,11 +45,9 @@ def fetch(
         tmp.replace(raw)
 
     if raw.suffix == ".zip":
-        with zipfile.ZipFile(raw) as archive:
-            member = _select_zip_member(archive, archive_member, url)
-            marker = dataset_cache / f"raw{Path(member).suffix or '.data'}"
-            with archive.open(member) as src, marker.open("wb") as dst:
-                dst.write(src.read())
+        member, payload = _read_zip_member(raw.read_bytes(), archive_member, url)
+        marker = dataset_cache / f"raw{Path(member).suffix or '.data'}"
+        marker.write_bytes(payload)
     else:
         marker = dataset_cache / f"raw{raw.suffix or '.data'}"
         if raw != marker:
@@ -56,20 +56,48 @@ def fetch(
     return str(marker)
 
 
-def _select_zip_member(archive: zipfile.ZipFile, archive_member: str | None, url: str) -> str:
-    names = archive.namelist()
-    if archive_member:
-        if archive_member in names:
-            return archive_member
-        raise ValueError(f"{archive_member!r} not found inside {url}")
+def _read_zip_member(
+    data: bytes, archive_member: str | None, url: str, *, _depth: int = 0
+) -> tuple[str, bytes]:
+    """Locate a tabular file inside a (possibly nested) zip.
 
-    data_names = [
-        item for item in names
-        if Path(item).suffix.lower() in {".csv", ".data", ".xls", ".xlsx"}
-    ]
-    if not data_names:
-        raise ValueError(f"no tabular data file inside {url}")
-    return data_names[0]
+    Returns ``(member_name, member_bytes)``. Some UCI archives wrap their data
+    in inner zips — e.g. bank_marketing's ``bank+marketing.zip`` contains
+    ``bank.zip`` / ``bank-additional.zip`` rather than a top-level CSV — so when
+    no match is found at the current level this recurses into nested ``.zip``
+    members. ``archive_member`` is matched by exact name first, then by basename
+    at any depth; without it the first tabular file found wins (the current
+    level is preferred over nested archives).
+    """
+    if _depth > 3:
+        raise ValueError(f"zip nesting too deep inside {url}")
+
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        names = [n for n in archive.namelist() if not n.endswith("/")]
+
+        if archive_member:
+            if archive_member in names:
+                return archive_member, archive.read(archive_member)
+            target = Path(archive_member).name
+            for name in names:
+                if Path(name).name == target and Path(name).suffix.lower() in TABULAR_SUFFIXES:
+                    return name, archive.read(name)
+        else:
+            for name in names:
+                if Path(name).suffix.lower() in TABULAR_SUFFIXES:
+                    return name, archive.read(name)
+
+        # Skip macOS resource-fork cruft (__MACOSX/...) when recursing.
+        for name in names:
+            if name.lower().endswith(".zip") and not name.startswith("__MACOSX"):
+                try:
+                    return _read_zip_member(archive.read(name), archive_member, url, _depth=_depth + 1)
+                except ValueError:
+                    continue
+
+    if archive_member:
+        raise ValueError(f"{archive_member!r} not found inside {url}")
+    raise ValueError(f"no tabular data file inside {url}")
 
 
 def fetch_health_heritage(
