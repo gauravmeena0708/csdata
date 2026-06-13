@@ -7,7 +7,7 @@ from csdata.prepare import prepare
 from csdata.infer import infer_spec, parse_date_columns
 from csdata.flags import flag_columns, ColumnFlags
 
-__version__ = "0.2.0"
+__version__ = "1.0.1"
 __all__ = [
     "DatasetSpec", "load_spec", "list_specs",
     "render_name", "render_idx", "validate", "prepare",
